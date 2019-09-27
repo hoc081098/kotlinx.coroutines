@@ -9,7 +9,7 @@ import kotlinx.coroutines.*
 
 // returns the first segment `s` with `s.id >= id` or `CLOSED`
 // if all the segments in this linked list have lower `id` and the list is closed for further segment additions.
-private inline fun <S: Segment<S>> S.findSegmentInternal(id: Long, createNewSegment: (id: Long, prev: S?) -> S): SegmentOrClosed<S> {
+private inline fun <S : Segment<S>> S.findSegmentInternal(id: Long, createNewSegment: (id: Long, prev: S?) -> S): SegmentOrClosed<S> {
     // Go through `next` references and add new segments if needed,
     // similarly to the `push` in the Michael-Scott queue algorithm.
     // The only difference is that `CAS failure` means that the
@@ -59,7 +59,7 @@ private inline fun <S : Segment<S>> AtomicRef<S>.moveForward(to: S): Boolean = l
  * returns the segment `s` with `s.id >= id` or `CLOSED` if all the segments in this linked list have lower `id`
  * and the list is closed.
  */
-internal inline fun <S: Segment<S>> AtomicRef<S>.findSegmentAndMoveForward(id: Long, startFrom: S, createNewSegment: (id: Long, prev: S?) -> S): SegmentOrClosed<S> {
+internal inline fun <S : Segment<S>> AtomicRef<S>.findSegmentAndMoveForward(id: Long, startFrom: S, createNewSegment: (id: Long, prev: S?) -> S): SegmentOrClosed<S> {
     while (true) {
         val s = startFrom.findSegmentInternal(id, createNewSegment)
         if (s.isClosed || moveForward(s.segment)) return s
@@ -87,7 +87,7 @@ internal fun <S : Segment<S>> S.close(): S {
  * Essentially, this is a node in the Michael-Scott queue algorithm, but with
  * maintaining [prev] pointer for efficient [remove] implementation.
  */
-internal abstract class Segment<S: Segment<S>>(val id: Long, prev: S?, pointers: Int) {
+internal abstract class Segment<S : Segment<S>>(val id: Long, prev: S?, pointers: Int) {
     // Pointer to the next segment, updates similarly to the Michael-Scott queue algorithm.
     private val _next = atomic<Any?>(null)
     val nextOrClosed: NextSegmentOrClosed<S> get() = NextSegmentOrClosed(_next.value)
@@ -95,6 +95,7 @@ internal abstract class Segment<S: Segment<S>>(val id: Long, prev: S?, pointers:
 
     // Pointer to the previous segment, updates in [remove] function.
     val prev = atomic(prev)
+
     /**
      * Cleans the pointer to the previous segment.
      */
@@ -119,6 +120,7 @@ internal abstract class Segment<S: Segment<S>>(val id: Long, prev: S?, pointers:
 
     // increments the number of pointers if this segment is not logically removed\
     inline fun tryIncPointers() = cleanedAndPointers.addConditionally(1 shl POINTERS_SHIFT) { it != maxSlots }
+
     // returns `true` if this segment is logically removed after the decrement
     inline fun decPointers() = cleanedAndPointers.addAndGet(-(1 shl POINTERS_SHIFT)) == maxSlots
 
@@ -188,19 +190,19 @@ internal abstract class Segment<S: Segment<S>>(val id: Long, prev: S?, pointers:
 }
 
 private inline fun AtomicInt.addConditionally(delta: Int, condition: (cur: Int) -> Boolean): Boolean {
-    while(true) {
+    while (true) {
         val cur = this.value
         if (!condition(cur)) return false
         if (this.compareAndSet(cur, cur + delta)) return true
     }
 }
 
-internal inline class SegmentOrClosed<S: Segment<S>>(private val value: Any?) {
+internal inline class SegmentOrClosed<S : Segment<S>>(private val value: Any?) {
     val isClosed: Boolean get() = value === CLOSED
     val segment: S get() = if (value === CLOSED) error("Does not contain segment") else value as S
 }
 
-internal inline class NextSegmentOrClosed<S: Segment<S>>(private val value: Any?) {
+internal inline class NextSegmentOrClosed<S : Segment<S>>(private val value: Any?) {
     val isClosed: Boolean get() = value === CLOSED
     val segment: S? get() = if (isClosed) null else value as S?
 }

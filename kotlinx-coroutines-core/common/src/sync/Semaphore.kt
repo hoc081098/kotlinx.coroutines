@@ -132,7 +132,7 @@ private class SemaphoreImpl(private val permits: Int, acquiredPermits: Int) : Se
         cur + 1
     }
 
-    private suspend fun addToQueueAndSuspend() = suspendAtomicCancellableCoroutineReusable<Unit> sc@ { cont ->
+    private suspend fun addToQueueAndSuspend() = suspendAtomicCancellableCoroutineReusable<Unit> sc@{ cont ->
         val curTail = this.tail.value
         val enqIdx = enqIdx.getAndIncrement()
         val segment = this.tail.findSegmentAndMoveForward(id = enqIdx / SEGMENT_SIZE, startFrom = curTail,
@@ -148,7 +148,7 @@ private class SemaphoreImpl(private val permits: Int, acquiredPermits: Int) : Se
 
     @Suppress("UNCHECKED_CAST")
     internal fun resumeNextFromQueue() {
-        try_again@while (true) {
+        try_again@ while (true) {
             val curHead = this.head.value
             val deqIdx = deqIdx.getAndIncrement()
             val id = deqIdx / SEGMENT_SIZE
@@ -190,7 +190,7 @@ private class CancelSemaphoreAcquisitionHandler(
 
 private fun createSegment(id: Long, prev: SemaphoreSegment?) = SemaphoreSegment(id, prev, 0)
 
-private class SemaphoreSegment(id: Long, prev: SemaphoreSegment?, pointers: Int): Segment<SemaphoreSegment>(id, prev, pointers) {
+private class SemaphoreSegment(id: Long, prev: SemaphoreSegment?, pointers: Int) : Segment<SemaphoreSegment>(id, prev, pointers) {
     val acquirers = atomicArrayOfNulls<Any?>(SEGMENT_SIZE)
     override val maxSlots: Int get() = SEGMENT_SIZE
 

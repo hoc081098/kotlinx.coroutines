@@ -14,7 +14,7 @@ class SegmentQueueTest : TestBase() {
     @Test
     fun simpleTest() {
         val q = SegmentBasedQueue<Int>()
-        assertEquals( 1, q.numberOfSegments)
+        assertEquals(1, q.numberOfSegments)
         assertEquals(null, q.dequeue())
         q.enqueue(1)
         assertEquals(1, q.numberOfSegments)
