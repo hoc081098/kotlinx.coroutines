@@ -7,14 +7,14 @@ package kotlinx.coroutines.internal
 import kotlinx.atomicfu.*
 import kotlinx.coroutines.*
 
-// returns the first segment `s` with `s.id >= id` or `CLOSED` if all the segments in this linked list have lower `id`
-//// and the list is closed for further segment additions.
+// returns the first segment `s` with `s.id >= id` or `CLOSED`
+// if all the segments in this linked list have lower `id` and the list is closed for further segment additions.
 private inline fun <S: Segment<S>> S.findSegmentInternal(id: Long, createNewSegment: (id: Long, prev: S?) -> S): SegmentOrClosed<S> {
     // Go through `next` references and add new segments if needed,
     // similarly to the `push` in the Michael-Scott queue algorithm.
     // The only difference is that `CAS failure` means that the
     // required segment has already been added, so the algorithm just
-    // uses it. This way, only one segment with each id can be in the queue.
+    // uses it. This way, only one segment with each id can be added.
     var cur: S = this
     while (cur.id < id || cur.removed) {
         val nextOrClosed = cur.nextOrClosed
