@@ -169,8 +169,8 @@ private class SemaphoreImpl(private val permits: Int, acquiredPermits: Int) : Se
     }
 }
 
-private fun AtomicLong.updateIfLower(value: Long): Unit = loop { cur ->
-    if (cur >= value || compareAndSet(cur, value)) return@loop
+private inline fun AtomicLong.updateIfLower(value: Long): Unit = loop { cur ->
+    if (cur >= value || compareAndSet(cur, value)) return
 }
 
 private class CancelSemaphoreAcquisitionHandler(
