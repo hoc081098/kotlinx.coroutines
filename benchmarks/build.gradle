@@ -79,6 +79,6 @@ dependencies {
 
 task runBfsChannelBenchmark(type : JavaExec) {
     main = 'macrobenchmarks.channel.BfsChannelBenchmark'
-    jvmArgs '-Xmx10G'
+    jvmArgs '-Xmx3G'
     classpath sourceSets.main.runtimeClasspath
 }
